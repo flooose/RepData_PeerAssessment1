@@ -1,0 +1,84 @@
+---
+title: "Reproducible Research: Peer Assessment 1"
+output:
+  html_document:
+    keep_md: true
+---
+
+
+## Loading and preprocessing the data
+
+Setup
+
+```{r}
+library(ggplot2)
+```
+
+```{r, cache=T}
+data <- read.csv('activity.csv')
+```
+
+## What is mean total number of steps taken per day?
+
+```{r totalNumberOfSteps}
+stepsPerDay <- aggregate(list(Steps=data$steps), list(Date=data$date), sum, na.rm = T)
+ggplot(data=stepsPerDay, mapping = aes(Steps)) + geom_histogram(binwidth=706)
+```
+
+mean and median steps per day:
+
+```{r mediaAndMean, cache=T}
+medianSteps <- median(stepsPerDay$Steps)
+meanSteps <- mean(stepsPerDay$Steps)
+medianSteps
+meanSteps
+```
+
+## What is the average daily activity pattern?
+
+Average number of steps per interval:
+
+```{r stepsByInterval, cache=T}
+avgStepsByInterval <- aggregate(list(Steps=data$steps), list(Interval=data$interval), mean, na.rm = T)
+g <- ggplot(data=avgStepsByInterval, mapping = aes(x=Interval, y=Steps))
+g+geom_line()
+```
+
+max number of steps:
+
+```{r}
+max(avgStepsByInterval$Steps)
+```
+
+## Imputing missing values
+
+Total number of rows with missing values:
+
+```{r}
+nrow(data[!complete.cases(data),])
+```
+
+Set `NA`s to the mean of each interval and create a new histogram
+
+```{r, cache=T}
+data2 <- data
+for (x in 1:nrow(data2)){
+    vec <- data2[x,]
+    if(is.na(vec$steps)){
+        data2[x,]$steps <- avgStepsByInterval[avgStepsByInterval$Interval == vec$interval,]$Steps
+    }
+}
+stepsPerDay <- aggregate(list(Steps=data2$steps), list(Date=data2$date), sum, na.rm = T)
+ggplot(data=stepsPerDay, mapping = aes(Steps)) + geom_histogram(binwidth=706)
+```
+
+New median and mean
+
+mean and median steps per day:
+
+```{r}
+median(stepsPerDay$Steps)
+mean(stepsPerDay$Steps)
+```
+
+## Are there differences in activity patterns between weekdays and weekends?
