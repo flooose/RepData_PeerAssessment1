@@ -1,0 +1,52 @@
+<h2 id="loading-and-preprocessing-the-data">Loading and preprocessing the data</h2>
+<p>Setup</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">data &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&#39;activity.csv&#39;</span>)</code></pre>
+<h2 id="what-is-mean-total-number-of-steps-taken-per-day">What is mean total number of steps taken per day?</h2>
+<pre class="sourceCode r"><code class="sourceCode r">stepsPerDay &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="kw">list</span>(<span class="dt">Steps=</span>data$steps), <span class="kw">list</span>(<span class="dt">Date=</span>data$date), sum, <span class="dt">na.rm =</span> T)
+<span class="kw">ggplot</span>(<span class="dt">data=</span>stepsPerDay, <span class="dt">mapping =</span> <span class="kw">aes</span>(Steps)) +<span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth=</span><span class="dv">706</span>)</code></pre>
+<figure>
+<img src="figure/totalNumberOfSteps-1.png" alt="plot of chunk totalNumberOfSteps" /><figcaption>plot of chunk totalNumberOfSteps</figcaption>
+</figure>
+<p>mean and median steps per day:</p>
+<pre class="sourceCode r"><code class="sourceCode r">medianSteps &lt;-<span class="st"> </span><span class="kw">median</span>(stepsPerDay$Steps)
+meanSteps &lt;-<span class="st"> </span><span class="kw">mean</span>(stepsPerDay$Steps)
+medianSteps</code></pre>
+<pre><code>## [1] 10395</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">meanSteps</code></pre>
+<pre><code>## [1] 9354.23</code></pre>
+<h2 id="what-is-the-average-daily-activity-pattern">What is the average daily activity pattern?</h2>
+<p>Average number of steps per interval:</p>
+<pre class="sourceCode r"><code class="sourceCode r">avgStepsByInterval &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="kw">list</span>(<span class="dt">Steps=</span>data$steps), <span class="kw">list</span>(<span class="dt">Interval=</span>data$interval), mean, <span class="dt">na.rm =</span> T)
+<span class="kw">ggplot</span>(<span class="dt">data=</span>avgStepsByInterval, <span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x=</span>Interval, <span class="dt">y=</span>Steps)) +<span class="st"> </span><span class="kw">geom_line</span>()</code></pre>
+<figure>
+<img src="figure/stepsByInterval-1.png" alt="plot of chunk stepsByInterval" /><figcaption>plot of chunk stepsByInterval</figcaption>
+</figure>
+<p>max number of steps:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">max</span>(avgStepsByInterval$Steps)</code></pre>
+<pre><code>## [1] 206.1698</code></pre>
+<h2 id="imputing-missing-values">Imputing missing values</h2>
+<p>Total number of rows with missing values:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">nrow</span>(data[!<span class="kw">complete.cases</span>(data),])</code></pre>
+<pre><code>## [1] 2304</code></pre>
+<p>Set <code>NA</code>s to the mean of each interval and create a new histogram</p>
+<pre class="sourceCode r"><code class="sourceCode r">data2 &lt;-<span class="st"> </span>data
+for (x in <span class="dv">1</span>:<span class="kw">nrow</span>(data2)){
+    vec &lt;-<span class="st"> </span>data2[x,]
+    if(<span class="kw">is.na</span>(vec$steps)){
+        data2[x,]$steps &lt;-<span class="st"> </span>avgStepsByInterval[avgStepsByInterval$Interval ==<span class="st"> </span>vec$interval,]$Steps
+    }
+}
+stepsPerDay &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="kw">list</span>(<span class="dt">Steps=</span>data2$steps), <span class="kw">list</span>(<span class="dt">Date=</span>data2$date), sum, <span class="dt">na.rm =</span> T)
+g &lt;-<span class="st"> </span><span class="kw">ggplot</span>(<span class="dt">data=</span>stepsPerDay, <span class="dt">mapping =</span> <span class="kw">aes</span>(Steps))
+g +<span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth=</span><span class="dv">706</span>)</code></pre>
+<figure>
+<img src="figure/unnamed-chunk-5-1.png" alt="plot of chunk unnamed-chunk-5" /><figcaption>plot of chunk unnamed-chunk-5</figcaption>
+</figure>
+<p>New median and mean</p>
+<p>mean and median steps per day:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(stepsPerDay$Steps)</code></pre>
+<pre><code>## [1] 10766.19</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(stepsPerDay$Steps)</code></pre>
+<pre><code>## [1] 10766.19</code></pre>
+<h2 id="are-there-differences-in-activity-patterns-between-weekdays-and-weekends">Are there differences in activity patterns between weekdays and weekends?</h2>
