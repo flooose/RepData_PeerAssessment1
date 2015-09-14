@@ -34,9 +34,7 @@ mean and median steps per day:
 
 
 ```r
-medianSteps <- median(stepsPerDay$Steps)
-meanSteps <- mean(stepsPerDay$Steps)
-medianSteps
+median(stepsPerDay$Steps)
 ```
 
 ```
@@ -44,7 +42,7 @@ medianSteps
 ```
 
 ```r
-meanSteps
+mean(stepsPerDay$Steps)
 ```
 
 ```
@@ -99,8 +97,7 @@ for (x in 1:nrow(data2)){
     }
 }
 stepsPerDay <- aggregate(list(Steps=data2$steps), list(Date=data2$date), sum, na.rm = T)
-g <- ggplot(data=stepsPerDay, mapping = aes(Steps))
-g + geom_histogram(binwidth=706)
+ggplot(data=stepsPerDay, mapping = aes(Steps)) + geom_histogram(binwidth=706)
 ```
 
 ![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
@@ -127,3 +124,29 @@ mean(stepsPerDay$Steps)
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+
+```r
+Sys.setlocale("LC_TIME", "en_US")
+```
+
+```
+## [1] "en_US"
+```
+
+```r
+weakdays <- weekdays(strptime(data$date,'%Y-%m-%d'))
+weekendify <- function(weekday){
+    if (weekday == "Saturday" || weekday == "Sunday"){
+        "weekend"
+    } else {
+        "weekday"
+    }
+}
+data$isWeekend_p <- factor(sapply(weakdays, weekendify))
+avgStepsByInterval <- aggregate(list(Steps=data$steps), list(Interval=data$interval, data$isWeekend_p), mean, na.rm = T)
+g <- ggplot(data=avgStepsByInterval, mapping = aes(x=Interval, y=Steps)) + geom_line()
+g + facet_grid(Group.2 ~ .)
+```
+
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png) 
