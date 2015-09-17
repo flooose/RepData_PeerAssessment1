@@ -20,11 +20,11 @@ library(ggplot2)
 data <- read.csv('activity.csv')
 ```
 
-## What is mean total number of steps taken per day?
+## What is the mean total number of steps taken per day?
 
 
 ```r
-stepsPerDay <- aggregate(list(Steps=data$steps), list(Date=data$date), sum, na.rm = T)
+stepsPerDay <- aggregate(list(Steps=data$steps), by = list(Date=data$date), sum, na.rm = T)
 ggplot(data=stepsPerDay, mapping = aes(Steps)) + geom_histogram(binwidth=706)
 ```
 
@@ -55,7 +55,7 @@ Average number of steps per interval:
 
 
 ```r
-avgStepsByInterval <- aggregate(list(Steps=data$steps), list(Interval=data$interval), mean, na.rm = T)
+avgStepsByInterval <- aggregate(list(Steps=data$steps), by = list(Interval=data$interval), mean, na.rm = T)
 ggplot(data=avgStepsByInterval, mapping = aes(x=Interval, y=Steps)) + geom_line()
 ```
 
@@ -85,7 +85,7 @@ nrow(data[!complete.cases(data),])
 ## [1] 2304
 ```
 
-Set `NA`s to the mean of each interval and create a new histogram
+Set `NA`s to the mean of each interval (since this was one possible acceptable choice offered by the assignment) and create a new histogram
 
 
 ```r
@@ -125,6 +125,8 @@ mean(stepsPerDay$Steps)
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+Create a new column of type `Factor` with levels `weekend` and `weekday`:
+
 
 ```r
 Sys.setlocale("LC_TIME", "en_US")
@@ -144,9 +146,15 @@ weekendify <- function(weekday){
     }
 }
 data$isWeekend_p <- factor(sapply(weakdays, weekendify))
+```
+
+Plot activity patterns for weekends vs. weekdays:
+
+
+```r
 avgStepsByInterval <- aggregate(list(Steps=data$steps), list(Interval=data$interval, data$isWeekend_p), mean, na.rm = T)
 g <- ggplot(data=avgStepsByInterval, mapping = aes(x=Interval, y=Steps)) + geom_line()
 g + facet_grid(Group.2 ~ .)
 ```
 
-![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png) 
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8-1.png) 

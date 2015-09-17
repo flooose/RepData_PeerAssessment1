@@ -2,8 +2,8 @@
 <p>Setup</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">data &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&#39;activity.csv&#39;</span>)</code></pre>
-<h2 id="what-is-mean-total-number-of-steps-taken-per-day">What is mean total number of steps taken per day?</h2>
-<pre class="sourceCode r"><code class="sourceCode r">stepsPerDay &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="kw">list</span>(<span class="dt">Steps=</span>data$steps), <span class="kw">list</span>(<span class="dt">Date=</span>data$date), sum, <span class="dt">na.rm =</span> T)
+<h2 id="what-is-the-mean-total-number-of-steps-taken-per-day">What is the mean total number of steps taken per day?</h2>
+<pre class="sourceCode r"><code class="sourceCode r">stepsPerDay &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="kw">list</span>(<span class="dt">Steps=</span>data$steps), <span class="dt">by =</span> <span class="kw">list</span>(<span class="dt">Date=</span>data$date), sum, <span class="dt">na.rm =</span> T)
 <span class="kw">ggplot</span>(<span class="dt">data=</span>stepsPerDay, <span class="dt">mapping =</span> <span class="kw">aes</span>(Steps)) +<span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth=</span><span class="dv">706</span>)</code></pre>
 <figure>
 <img src="figure/totalNumberOfSteps-1.png" alt="plot of chunk totalNumberOfSteps" /><figcaption>plot of chunk totalNumberOfSteps</figcaption>
@@ -15,7 +15,7 @@
 <pre><code>## [1] 9354.23</code></pre>
 <h2 id="what-is-the-average-daily-activity-pattern">What is the average daily activity pattern?</h2>
 <p>Average number of steps per interval:</p>
-<pre class="sourceCode r"><code class="sourceCode r">avgStepsByInterval &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="kw">list</span>(<span class="dt">Steps=</span>data$steps), <span class="kw">list</span>(<span class="dt">Interval=</span>data$interval), mean, <span class="dt">na.rm =</span> T)
+<pre class="sourceCode r"><code class="sourceCode r">avgStepsByInterval &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="kw">list</span>(<span class="dt">Steps=</span>data$steps), <span class="dt">by =</span> <span class="kw">list</span>(<span class="dt">Interval=</span>data$interval), mean, <span class="dt">na.rm =</span> T)
 <span class="kw">ggplot</span>(<span class="dt">data=</span>avgStepsByInterval, <span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x=</span>Interval, <span class="dt">y=</span>Steps)) +<span class="st"> </span><span class="kw">geom_line</span>()</code></pre>
 <figure>
 <img src="figure/stepsByInterval-1.png" alt="plot of chunk stepsByInterval" /><figcaption>plot of chunk stepsByInterval</figcaption>
@@ -27,7 +27,7 @@
 <p>Total number of rows with missing values:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">nrow</span>(data[!<span class="kw">complete.cases</span>(data),])</code></pre>
 <pre><code>## [1] 2304</code></pre>
-<p>Set <code>NA</code>s to the mean of each interval and create a new histogram</p>
+<p>Set <code>NA</code>s to the mean of each interval (since this was one possible acceptable choice offered by the assignment) and create a new histogram</p>
 <pre class="sourceCode r"><code class="sourceCode r">data2 &lt;-<span class="st"> </span>data
 for (x in <span class="dv">1</span>:<span class="kw">nrow</span>(data2)){
     vec &lt;-<span class="st"> </span>data2[x,]
@@ -47,6 +47,7 @@ stepsPerDay &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<spa
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mean</span>(stepsPerDay$Steps)</code></pre>
 <pre><code>## [1] 10766.19</code></pre>
 <h2 id="are-there-differences-in-activity-patterns-between-weekdays-and-weekends">Are there differences in activity patterns between weekdays and weekends?</h2>
+<p>Create a new column of type <code>Factor</code> with levels <code>weekend</code> and <code>weekday</code>:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">Sys.setlocale</span>(<span class="st">&quot;LC_TIME&quot;</span>, <span class="st">&quot;en_US&quot;</span>)</code></pre>
 <pre><code>## [1] &quot;en_US&quot;</code></pre>
 <pre class="sourceCode r"><code class="sourceCode r">weakdays &lt;-<span class="st"> </span><span class="kw">weekdays</span>(<span class="kw">strptime</span>(data$date,<span class="st">&#39;%Y-%m-%d&#39;</span>))
@@ -57,10 +58,11 @@ weekendify &lt;-<span class="st"> </span>function(weekday){
         <span class="st">&quot;weekday&quot;</span>
     }
 }
-data$isWeekend_p &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw">sapply</span>(weakdays, weekendify))
-avgStepsByInterval &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="kw">list</span>(<span class="dt">Steps=</span>data$steps), <span class="kw">list</span>(<span class="dt">Interval=</span>data$interval, data$isWeekend_p), mean, <span class="dt">na.rm =</span> T)
+data$isWeekend_p &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw">sapply</span>(weakdays, weekendify))</code></pre>
+<p>Plot activity patterns for weekends vs. weekdays:</p>
+<pre class="sourceCode r"><code class="sourceCode r">avgStepsByInterval &lt;-<span class="st"> </span><span class="kw">aggregate</span>(<span class="kw">list</span>(<span class="dt">Steps=</span>data$steps), <span class="kw">list</span>(<span class="dt">Interval=</span>data$interval, data$isWeekend_p), mean, <span class="dt">na.rm =</span> T)
 g &lt;-<span class="st"> </span><span class="kw">ggplot</span>(<span class="dt">data=</span>avgStepsByInterval, <span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x=</span>Interval, <span class="dt">y=</span>Steps)) +<span class="st"> </span><span class="kw">geom_line</span>()
 g +<span class="st"> </span><span class="kw">facet_grid</span>(Group<span class="fl">.2</span> ~<span class="st"> </span>.)</code></pre>
 <figure>
-<img src="figure/unnamed-chunk-7-1.png" alt="plot of chunk unnamed-chunk-7" /><figcaption>plot of chunk unnamed-chunk-7</figcaption>
+<img src="figure/unnamed-chunk-8-1.png" alt="plot of chunk unnamed-chunk-8" /><figcaption>plot of chunk unnamed-chunk-8</figcaption>
 </figure>
